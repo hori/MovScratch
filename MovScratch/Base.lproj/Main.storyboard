@@ -28,11 +28,19 @@
                             <imageView userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="KxV-hN-sHr">
                                 <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                             </imageView>
+                            <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="5vo-Sa-nIK">
+                                <rect key="frame" x="0.0" y="420" width="375" height="147"/>
+                                <color key="backgroundColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
+                            </scrollView>
                         </subviews>
                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <constraints>
+                            <constraint firstAttribute="trailing" secondItem="5vo-Sa-nIK" secondAttribute="trailing" id="CP4-AF-k0T"/>
                             <constraint firstItem="KxV-hN-sHr" firstAttribute="top" secondItem="8bC-Xf-vdC" secondAttribute="top" id="EDJ-6z-qsl"/>
+                            <constraint firstItem="wfy-db-euE" firstAttribute="top" secondItem="5vo-Sa-nIK" secondAttribute="bottom" constant="100" id="G36-xG-q4t"/>
+                            <constraint firstItem="5vo-Sa-nIK" firstAttribute="top" secondItem="y3c-jy-aDJ" secondAttribute="bottom" constant="400" id="Gez-YH-OXM"/>
                             <constraint firstAttribute="trailing" secondItem="dCV-wO-rfS" secondAttribute="trailing" id="Gsd-jx-KD5"/>
+                            <constraint firstItem="5vo-Sa-nIK" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leading" id="Jdo-aO-Hhu"/>
                             <constraint firstItem="wfy-db-euE" firstAttribute="top" secondItem="dCV-wO-rfS" secondAttribute="bottom" id="Jga-Su-Jln"/>
                             <constraint firstItem="dCV-wO-rfS" firstAttribute="top" secondItem="8bC-Xf-vdC" secondAttribute="top" id="enL-eq-6BH"/>
                             <constraint firstItem="dCV-wO-rfS" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leading" id="j8k-8S-VDU"/>
@@ -44,6 +52,7 @@
                     <connections>
                         <outlet property="imageView" destination="KxV-hN-sHr" id="4my-eE-le5"/>
                         <outlet property="playerView" destination="dCV-wO-rfS" id="lcL-9n-R3m"/>
+                        <outlet property="scrollView" destination="5vo-Sa-nIK" id="Acd-31-Czi"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>

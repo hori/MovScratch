@@ -14,17 +14,20 @@ class ViewController: UIViewController {
 
   var playerItem: AVPlayerItem!
   var player: AVPlayer!
+  var scrollImageView: UIImageView!
 
   var seekTo: CMTime?
 
-  var frames: [UIImage] = []
+  var frames: [CIImage] = []
   var needImpactFeedback:Bool = false
+  
+  var assetSize: CGSize?
 
   @IBOutlet weak var playerView: PlayerView!
   @IBOutlet weak var imageView: UIImageView!
+  @IBOutlet weak var scrollView: UIScrollView!
 
   func asset() -> AVAsset {
-    //    let path = Bundle.main.path(forResource: "sample", ofType: "mp4")
     let path = Bundle.main.path(forResource: "snowboarding_480p", ofType: "m4v")
     let asset = AVURLAsset(url: URL(fileURLWithPath: path!))
     return asset
@@ -34,6 +37,8 @@ class ViewController: UIViewController {
     super.viewDidLoad()
     
     let asset = self.asset()
+    assetSize = asset.tracks(withMediaType: AVMediaTypeVideo)[0].naturalSize
+    
 
     playerItem = AVPlayerItem(asset: asset)
     player = AVPlayer(playerItem: playerItem)
@@ -47,6 +52,8 @@ class ViewController: UIViewController {
     playerView.addGestureRecognizer(panGesture)
 
     self.buffering()
+
+    self.setupScrollView()
   }
 
   override func didReceiveMemoryWarning() {
@@ -54,6 +61,28 @@ class ViewController: UIViewController {
     // Dispose of any resources that can be recreated.
   }
 
+  func setupScrollView() {
+    let width = frames.count
+    scrollImageView = UIImageView(image: UIImage(named: "scroll_texture"))
+    scrollImageView.contentMode = .scaleToFill
+    scrollImageView.bounds.size = CGSize(width: CGFloat(width), height: scrollView.bounds.size.height)
+    scrollView.addSubview(scrollImageView)
+    scrollView.contentSize = scrollImageView.bounds.size
+    scrollView.contentInset.left = scrollView.bounds.size.width/2
+    scrollView.contentInset.right = scrollView.bounds.size.width/2
+    scrollView.delegate = self
+    scrollView.bounces = false
+
+    // sync scrollview
+    let time : CMTime = CMTimeMakeWithSeconds(0.1, Int32(NSEC_PER_SEC))
+    player.addPeriodicTimeObserver(forInterval: time, queue: nil) { [unowned self] (time) -> Void in
+      guard self.player.rate != 0 else {return}
+      let index = self.indexToSeek(cmTime: self.player.currentTime())
+      self.scrollView.contentOffset.x = CGFloat(Double(index) - Double(self.scrollView.contentInset.right))
+    }
+  }
+  
+  
   func panView(sender: AnyObject) {
     if (sender.state == UIGestureRecognizerState.began) {
       player.pause()
@@ -71,7 +100,7 @@ class ViewController: UIViewController {
       currentIndex = frames.count - 1
       needImpactFeedback = true
     }
-    imageView.image = frames[currentIndex]
+    imageView.image = self.uiImage(index: currentIndex)
     
     if (needImpactFeedback) {
       let generator = UIImpactFeedbackGenerator(style: .medium)
@@ -120,23 +149,16 @@ class ViewController: UIViewController {
   
   func buffering() {
     print(self.nowTime())
-    var i = 0
-//    var frames: [CGImage?] = []
 
     let asset = self.asset()
     let reader = try! AVAssetReader(asset: asset)
     
     let videoTrack = asset.tracks(withMediaType: AVMediaTypeVideo)[0]
-    
-    // read video frames as BGRA
     let trackReaderOutput = AVAssetReaderTrackOutput(track: videoTrack, outputSettings:[String(kCVPixelBufferPixelFormatTypeKey): NSNumber(value: kCVPixelFormatType_32BGRA)])
-    
     reader.add(trackReaderOutput)
     reader.startReading()
     
     while let sampleBuffer = trackReaderOutput.copyNextSampleBuffer() {
-      i = i + 1
-//      if (i%2 > 0) {continue}
       if let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) {
 
 //        let ciImage = CIImage(cvPixelBuffer: pixelBuffer)
@@ -145,16 +167,18 @@ class ViewController: UIViewController {
 //        let uiImage = UIImage(ciImage: ciImage)
 
         let ciImage = CIImage(cvPixelBuffer: pixelBuffer)
-        let pixelBufferWidth = CGFloat(CVPixelBufferGetWidth(pixelBuffer))
-        let pixelBufferHeight = CGFloat(CVPixelBufferGetHeight(pixelBuffer))
-        let imageRect:CGRect = CGRect(x: 0, y: 0, width: pixelBufferWidth, height: pixelBufferHeight)
-        let ciContext = CIContext.init()
-        let cgImage = ciContext.createCGImage(ciImage, from: imageRect )
-        let uiImage = self.resize(uiImage: UIImage(cgImage: cgImage!, scale: 1, orientation: UIImageOrientation.right), scale: 1/2)
-        frames.append(uiImage!)
+        frames.append(ciImage)
+//        let pixelBufferWidth = CGFloat(CVPixelBufferGetWidth(pixelBuffer))
+//        let pixelBufferHeight = CGFloat(CVPixelBufferGetHeight(pixelBuffer))
+//        let imageRect:CGRect = CGRect(x: 0, y: 0, width: pixelBufferWidth, height: pixelBufferHeight)
+//        let ciContext = CIContext.init()
+//        let cgImage = ciContext.createCGImage(ciImage, from: imageRect )
+//        let uiImage = self.resize(uiImage: UIImage(cgImage: cgImage!, scale: 1, orientation: UIImageOrientation.right), scale: 1/2)
+//        frames.append(uiImage!)
       }
     }
     print(self.nowTime())
+    print(frames.count)
   }
   
   func resize(uiImage: UIImage, scale: Float) -> UIImage? {
@@ -180,7 +204,7 @@ class ViewController: UIViewController {
       v = Int(Float(v) * friction)
       if (i < 0 || i > frames.count - 1) { break }
       if (v == 0) { break }
-      images.append(frames[i])
+      images.append(self.uiImage(index: i))
       indexise.append(i)
     }
     print(indexise)
@@ -189,7 +213,7 @@ class ViewController: UIViewController {
     return images
   }
   
-  //MARK: - for debugging
+//MARK: - for debugging
 
   func nowTime() -> String {
     let format = DateFormatter()
@@ -203,7 +227,46 @@ class ViewController: UIViewController {
     if seekTo > CMTimeGetSeconds(asset().duration) {return asset().duration}
     return CMTimeMakeWithSeconds(seekTo, Int32(NSEC_PER_SEC))
   }
+
+  func indexToSeek(cmTime: CMTime) -> Int {
+    let seekTo = Int((CMTimeGetSeconds(cmTime) / CMTimeGetSeconds(asset().duration)) * Double(frames.count))
+    if seekTo < 0 {return 0}
+    if seekTo > (frames.count - 1)  {return (frames.count - 1)}
+    return seekTo
+  }
+
+  func uiImage(index: Int) -> UIImage {
+    guard let size = assetSize else { return UIImage() }
+    let ciImage = frames[index]
+    let imageRect:CGRect = CGRect(x: 0, y: 0, width: size.width, height: size.height)
+    let ciContext = CIContext.init()
+    let cgImage = ciContext.createCGImage(ciImage, from: imageRect )
+    let uiImage = UIImage(cgImage: cgImage!, scale: 1, orientation: UIImageOrientation.right)
+    return uiImage
+
+  }
+}
+
+//MARK: - UIScrollViewDelegate
+extension ViewController: UIScrollViewDelegate {
+
+  func scrollViewDidScroll(_ scrollView: UIScrollView) {
+    print(scrollView.contentOffset.x + (scrollView.bounds.width/2))
+    let index = Int(scrollView.contentOffset.x + (scrollView.bounds.width/2))
+    if player.rate == 0 {
+      player.seek(to: self.cmTimeToSeek(index: index), toleranceBefore: kCMTimeZero, toleranceAfter: kCMTimeZero)
+    }
+  }
   
+  func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
+    print(scrollView.contentOffset.x + (scrollView.bounds.width/2))
+    print("scrollViewDidEndDecelerating")
+    player.play()
+  }
   
+  func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
+    print("scrollViewWillBeginDragging")
+    player.pause()
+  }
 }
 
