@@ -51,7 +51,6 @@
 		822349E91E4AF5E200A41347 /* MovScratchUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovScratchUITests.swift; sourceTree = "<group>"; };
 		822349EB1E4AF5E200A41347 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		822349F71E4C558100A41347 /* PlayerView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlayerView.swift; sourceTree = "<group>"; };
-		822349F91E4C593F00A41347 /* sample.mp4 */ = {isa = PBXFileReference; lastKnownFileType = file; path = sample.mp4; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -107,7 +106,6 @@
 				822349F71E4C558100A41347 /* PlayerView.swift */,
 				822349CD1E4AF5E200A41347 /* Main.storyboard */,
 				822349D01E4AF5E200A41347 /* Assets.xcassets */,
-				822349F91E4C593F00A41347 /* sample.mp4 */,
 				821976981E55CFE700130091 /* snowboarding_480p.m4v */,
 				822349D21E4AF5E200A41347 /* LaunchScreen.storyboard */,
 				822349D51E4AF5E200A41347 /* Info.plist */,
