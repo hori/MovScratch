@@ -25,13 +25,20 @@
                                 <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                             </view>
+                            <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="foreground" translatesAutoresizingMaskIntoConstraints="NO" id="cde-ct-XsX">
+                                <rect key="frame" x="0.0" y="-2" width="375" height="669"/>
+                            </imageView>
                         </subviews>
                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <constraints>
+                            <constraint firstItem="wfy-db-euE" firstAttribute="top" secondItem="cde-ct-XsX" secondAttribute="bottom" id="0oW-9G-shD"/>
                             <constraint firstAttribute="trailing" secondItem="dCV-wO-rfS" secondAttribute="trailing" id="Gsd-jx-KD5"/>
                             <constraint firstItem="wfy-db-euE" firstAttribute="top" secondItem="dCV-wO-rfS" secondAttribute="bottom" id="Jga-Su-Jln"/>
+                            <constraint firstAttribute="trailing" secondItem="cde-ct-XsX" secondAttribute="trailing" id="UgV-w8-P4I"/>
+                            <constraint firstItem="cde-ct-XsX" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leading" id="VOW-dF-8cd"/>
                             <constraint firstItem="dCV-wO-rfS" firstAttribute="top" secondItem="8bC-Xf-vdC" secondAttribute="top" id="enL-eq-6BH"/>
                             <constraint firstItem="dCV-wO-rfS" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leading" id="j8k-8S-VDU"/>
+                            <constraint firstItem="cde-ct-XsX" firstAttribute="top" secondItem="y3c-jy-aDJ" secondAttribute="bottom" constant="-22" id="zNe-F8-4io"/>
                         </constraints>
                     </view>
                     <connections>
@@ -43,4 +50,7 @@
             <point key="canvasLocation" x="34.399999999999999" y="30.134932533733135"/>
         </scene>
     </scenes>
+    <resources>
+        <image name="foreground" width="375" height="667"/>
+    </resources>
 </document>

@@ -11,18 +11,26 @@ import UIKit
 import AVFoundation
 
 class PlayerView: UIView {
+  
+  let seekRate: Int = 4
+  let decelerationRate: CGFloat = 0.8
 
   var player: AVPlayer!
   var videoFrameCount: Int!
   var scrollView: UIScrollView!
 
+  var lastSeekedAt: Double = 0
+  var lastSeekedPosition: Double = 0
+  var isMomentumSeeking: Bool = false
+
+  let generator = UINotificationFeedbackGenerator()
+
   var asset: AVAsset! {
     didSet {
       guard let asset = self.asset else { return }
-      player = AVPlayer(playerItem: AVPlayerItem(asset: asset))
-      playerLayer.player = player
       videoFrameCount = self.videoFrameCount(asset: asset)
-      self.setupScrollView(width: videoFrameCount)
+      self.setupPlayer(asset: asset)
+      self.setupScrollView(width: videoFrameCount*seekRate)
       player.play()
     }
   }
@@ -40,26 +48,39 @@ class PlayerView: UIView {
     
     scrollView = UIScrollView(frame: self.superview!.bounds)
     self.addSubview(scrollView)
-    
-    
   }
   
-  // MARK: - setup
+  // MARK: - Setup
   fileprivate func setupScrollView(width: Int) {
     scrollView.contentSize = CGSize(width: CGFloat(width), height: scrollView.bounds.size.height)
     scrollView.contentInset.left = scrollView.bounds.size.width/2
     scrollView.contentInset.right = scrollView.bounds.size.width/2
     scrollView.delegate = self
     scrollView.bounces = false
+    scrollView.decelerationRate = decelerationRate
     
     // sync scrollview
     let time : CMTime = CMTimeMakeWithSeconds(0.1, Int32(NSEC_PER_SEC))
     player.addPeriodicTimeObserver(forInterval: time, queue: nil) { [unowned self] (time) -> Void in
       guard self.player.rate != 0 else {return}
       let index = self.frameIndexToSeek(cmTime: self.player.currentTime())
-      self.scrollView.contentOffset.x = CGFloat(Double(index) - Double(self.scrollView.contentInset.right))
+      self.scrollView.contentOffset.x = CGFloat(Double(index*self.seekRate) - Double(self.scrollView.contentInset.right))
     }
   }
+  
+  fileprivate func setupPlayer(asset: AVAsset) {
+    player = AVPlayer(playerItem: AVPlayerItem(asset: asset))
+    playerLayer.player = player
+    
+    // loop video
+    NotificationCenter.default.addObserver(forName: .AVPlayerItemDidPlayToEndTime, object: self.player.currentItem, queue: nil, using: { (_) in
+      DispatchQueue.main.async {
+        self.player?.seek(to: kCMTimeZero)
+        self.player?.play()
+      }
+    })
+  }
+
   // MARK: - To seek
 
   fileprivate func videoFrameCount(asset: AVAsset) -> Int {
@@ -70,7 +91,7 @@ class PlayerView: UIView {
   }
 
   fileprivate func cmTimeToSeek(index: Int) -> CMTime {
-    let seekTo = (Double(index) / Double(videoFrameCount - 1)) * CMTimeGetSeconds(asset.duration)
+    let seekTo = (Double(index/seekRate) / Double(videoFrameCount - 1)) * CMTimeGetSeconds(asset.duration)
     if seekTo < 0 {return kCMTimeZero}
     if seekTo > CMTimeGetSeconds(asset.duration) {return asset.duration}
     return CMTimeMakeWithSeconds(seekTo, Int32(NSEC_PER_SEC))
@@ -85,31 +106,72 @@ class PlayerView: UIView {
 
 }
 
-//MARK: - UIScrollViewDelegate
+// MARK: - UIScrollViewDelegate
 extension PlayerView: UIScrollViewDelegate {
+  
   
   func scrollViewDidScroll(_ scrollView: UIScrollView) {
     let index = Int(scrollView.contentOffset.x + (scrollView.bounds.width/2))
     if player.rate == 0 {
-      player.seek(to: self.cmTimeToSeek(index: index), toleranceBefore: kCMTimeZero, toleranceAfter: kCMTimeZero)
+      let toSeek = self.cmTimeToSeek(index: index)
+      player.seek(to: toSeek, toleranceBefore: kCMTimeZero, toleranceAfter: kCMTimeZero)
+      
+      if index == 0 {
+        generator.prepare()
+        generator.notificationOccurred(.warning)
+      }
+
+//      if isMomentumSeeking {
+//        let rate = self.momentumSeekRate(seekTo: toSeek)
+//        print(rate)
+//        if rate >= 0 && rate < 1.5 {
+//          player.play()
+////          scrollView.setContentOffset(scrollView.contentOffset, animated: false)
+//          isMomentumSeeking = false
+//          print("start")
+//        }
+//      }
     }
   }
   
   func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
-    print("scrollViewDidEndDecelerating")
     player.play()
+    isMomentumSeeking = false
   }
   
   func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
-    print("scrollViewWillBeginDragging")
     player.pause()
   }
 
   func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
-    print("scrollViewDidEndDragging")
     if (!decelerate) {
       player.play()
+      isMomentumSeeking = false
+    } else {
+      isMomentumSeeking = true
     }
   }
+  
+  func momentumSeekRate(seekTo: CMTime) -> Double {
+    let currentTime = CACurrentMediaTime()
+    let currentPosition = CMTimeGetSeconds(seekTo)
+    let dPosition = currentPosition - lastSeekedPosition
+    let dTime = currentTime - lastSeekedAt
+    lastSeekedPosition = CMTimeGetSeconds(seekTo)
+    lastSeekedAt = currentTime
+    return dPosition / dTime
+  }
+}
 
+
+// MARK: - For debugging
+
+extension PlayerView {
+
+  func nowTime() -> String {
+    let format = DateFormatter()
+    format.dateFormat = "HH:mm:ss.SSS"
+    return format.string(from: Date())
+  }
+  
 }
