@@ -12,8 +12,15 @@ import AVFoundation
 
 class PlayerView: UIView {
   
+  enum Direction: Int {
+    case RightForward = -1
+    case LeftForward  = 1
+  }
+  
+  // Params
   let seekRate: Int = 4
   let decelerationRate: CGFloat = 0.8
+  let swipeDirection: Direction = .RightForward
 
   var player: AVPlayer!
   var videoFrameCount: Int!
@@ -63,8 +70,7 @@ class PlayerView: UIView {
     let time : CMTime = CMTimeMakeWithSeconds(0.1, Int32(NSEC_PER_SEC))
     player.addPeriodicTimeObserver(forInterval: time, queue: nil) { [unowned self] (time) -> Void in
       guard self.player.rate != 0 else {return}
-      let index = self.frameIndexToSeek(cmTime: self.player.currentTime())
-      self.scrollView.contentOffset.x = CGFloat(Double(index*self.seekRate) - Double(self.scrollView.contentInset.right))
+      self.syncScrollView(currentTime: self.player.currentTime())
     }
   }
   
@@ -82,6 +88,13 @@ class PlayerView: UIView {
   }
 
   // MARK: - To seek
+  
+  fileprivate func syncScrollView(currentTime: CMTime) {
+    let index = self.frameIndexToSeek(cmTime: currentTime)
+    let pos : Double = swipeDirection == .LeftForward ? Double(index*self.seekRate) : Double(self.scrollView.contentSize.width) -  Double(index*self.seekRate)
+    scrollView.contentOffset.x = CGFloat(pos - Double(self.scrollView.contentInset.right))
+//    print(pos)
+  }
 
   fileprivate func videoFrameCount(asset: AVAsset) -> Int {
     guard let track = asset.tracks.first else { return 0 }
@@ -91,7 +104,7 @@ class PlayerView: UIView {
   }
 
   fileprivate func cmTimeToSeek(index: Int) -> CMTime {
-    let seekTo = (Double(index/seekRate) / Double(videoFrameCount - 1)) * CMTimeGetSeconds(asset.duration)
+    let seekTo = (Double(index) / Double(scrollView.contentSize.width)) * CMTimeGetSeconds(asset.duration)
     if seekTo < 0 {return kCMTimeZero}
     if seekTo > CMTimeGetSeconds(asset.duration) {return asset.duration}
     return CMTimeMakeWithSeconds(seekTo, Int32(NSEC_PER_SEC))
@@ -111,26 +124,15 @@ extension PlayerView: UIScrollViewDelegate {
   
   
   func scrollViewDidScroll(_ scrollView: UIScrollView) {
-    let index = Int(scrollView.contentOffset.x + (scrollView.bounds.width/2))
     if player.rate == 0 {
-      let toSeek = self.cmTimeToSeek(index: index)
-      player.seek(to: toSeek, toleranceBefore: kCMTimeZero, toleranceAfter: kCMTimeZero)
+      let index:Int = swipeDirection == .LeftForward ? Int(scrollView.contentOffset.x + (scrollView.bounds.width/2)) : Int(scrollView.contentSize.width - scrollView.contentOffset.x + (scrollView.bounds.width/2))
+      print(index)
+      player.seek(to: self.cmTimeToSeek(index: index), toleranceBefore: kCMTimeZero, toleranceAfter: kCMTimeZero)
       
       if index == 0 {
         generator.prepare()
         generator.notificationOccurred(.warning)
       }
-
-//      if isMomentumSeeking {
-//        let rate = self.momentumSeekRate(seekTo: toSeek)
-//        print(rate)
-//        if rate >= 0 && rate < 1.5 {
-//          player.play()
-////          scrollView.setContentOffset(scrollView.contentOffset, animated: false)
-//          isMomentumSeeking = false
-//          print("start")
-//        }
-//      }
     }
   }
   
@@ -150,16 +152,6 @@ extension PlayerView: UIScrollViewDelegate {
     } else {
       isMomentumSeeking = true
     }
-  }
-  
-  func momentumSeekRate(seekTo: CMTime) -> Double {
-    let currentTime = CACurrentMediaTime()
-    let currentPosition = CMTimeGetSeconds(seekTo)
-    let dPosition = currentPosition - lastSeekedPosition
-    let dTime = currentTime - lastSeekedAt
-    lastSeekedPosition = CMTimeGetSeconds(seekTo)
-    lastSeekedAt = currentTime
-    return dPosition / dTime
   }
 }
 
