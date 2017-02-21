@@ -10,7 +10,17 @@ import Foundation
 import UIKit
 import AVFoundation
 
+protocol PlayerViewDelegate {
+
+  func playerViewWillBeginSeeking() -> Void
+  func playerViewDidEndSeeking() -> Void
+  func playerViewDidChangePosition(_ currentPosition: Double) -> Void
+
+}
+
 class PlayerView: UIView {
+  
+  var delegate: PlayerViewDelegate?
   
   enum Direction: Int {
     case RightForward = -1
@@ -28,7 +38,6 @@ class PlayerView: UIView {
 
   var lastSeekedAt: Double = 0
   var lastSeekedPosition: Double = 0
-  var isMomentumSeeking: Bool = false
 
   let generator = UINotificationFeedbackGenerator()
 
@@ -124,9 +133,11 @@ extension PlayerView: UIScrollViewDelegate {
   
   
   func scrollViewDidScroll(_ scrollView: UIScrollView) {
+
+    self.delegate?.playerViewDidChangePosition( CMTimeGetSeconds(player.currentTime()) / CMTimeGetSeconds(asset.duration))
+
     if player.rate == 0 {
       let index:Int = swipeDirection == .LeftForward ? Int(scrollView.contentOffset.x + (scrollView.bounds.width/2)) : Int(scrollView.contentSize.width - scrollView.contentOffset.x + (scrollView.bounds.width/2))
-      print(index)
       player.seek(to: self.cmTimeToSeek(index: index), toleranceBefore: kCMTimeZero, toleranceAfter: kCMTimeZero)
       
       if index == 0 {
@@ -138,23 +149,21 @@ extension PlayerView: UIScrollViewDelegate {
   
   func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
     player.play()
-    isMomentumSeeking = false
+    self.delegate?.playerViewDidEndSeeking()
   }
   
   func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
     player.pause()
+    self.delegate?.playerViewWillBeginSeeking()
   }
 
   func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
     if (!decelerate) {
       player.play()
-      isMomentumSeeking = false
-    } else {
-      isMomentumSeeking = true
+      self.delegate?.playerViewDidEndSeeking()
     }
   }
 }
-
 
 // MARK: - For debugging
 

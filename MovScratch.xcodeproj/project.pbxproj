@@ -16,6 +16,7 @@
 		822349DF1E4AF5E200A41347 /* MovScratchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 822349DE1E4AF5E200A41347 /* MovScratchTests.swift */; };
 		822349EA1E4AF5E200A41347 /* MovScratchUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 822349E91E4AF5E200A41347 /* MovScratchUITests.swift */; };
 		822349F81E4C558100A41347 /* PlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 822349F71E4C558100A41347 /* PlayerView.swift */; };
+		82D2D7661E5C2FE80044604D /* ProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82D2D7651E5C2FE80044604D /* ProgressView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -51,6 +52,7 @@
 		822349E91E4AF5E200A41347 /* MovScratchUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovScratchUITests.swift; sourceTree = "<group>"; };
 		822349EB1E4AF5E200A41347 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		822349F71E4C558100A41347 /* PlayerView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlayerView.swift; sourceTree = "<group>"; };
+		82D2D7651E5C2FE80044604D /* ProgressView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ProgressView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -104,6 +106,7 @@
 				822349C91E4AF5E200A41347 /* AppDelegate.swift */,
 				822349CB1E4AF5E200A41347 /* ViewController.swift */,
 				822349F71E4C558100A41347 /* PlayerView.swift */,
+				82D2D7651E5C2FE80044604D /* ProgressView.swift */,
 				822349CD1E4AF5E200A41347 /* Main.storyboard */,
 				822349D01E4AF5E200A41347 /* Assets.xcassets */,
 				821976981E55CFE700130091 /* snowboarding_480p.m4v */,
@@ -270,6 +273,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				822349F81E4C558100A41347 /* PlayerView.swift in Sources */,
+				82D2D7661E5C2FE80044604D /* ProgressView.swift in Sources */,
 				822349CC1E4AF5E200A41347 /* ViewController.swift in Sources */,
 				822349CA1E4AF5E200A41347 /* AppDelegate.swift in Sources */,
 			);
