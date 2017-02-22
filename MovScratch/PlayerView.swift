@@ -69,11 +69,13 @@ class PlayerView: UIView {
   // MARK: - Setup
   fileprivate func setupScrollView(width: Int) {
     scrollView.contentSize = CGSize(width: CGFloat(width), height: scrollView.bounds.size.height)
-    scrollView.contentInset.left = scrollView.bounds.size.width/2
-    scrollView.contentInset.right = scrollView.bounds.size.width/2
+    scrollView.contentInset = UIEdgeInsets(top: 0, left: scrollView.frame.size.width / 2, bottom: 0, right: scrollView.frame.size.width / 2)
     scrollView.delegate = self
     scrollView.bounces = false
     scrollView.decelerationRate = decelerationRate
+
+    print("contentInset.left  :", scrollView.contentInset.left)
+    print("contentInset.right :", scrollView.contentInset.right)
     
     // sync scrollview
     let time : CMTime = CMTimeMakeWithSeconds(0.1, Int32(NSEC_PER_SEC))
@@ -100,9 +102,10 @@ class PlayerView: UIView {
   
   fileprivate func syncScrollView(currentTime: CMTime) {
     let index = self.frameIndexToSeek(cmTime: currentTime)
-    let pos : Double = swipeDirection == .LeftForward ? Double(index*self.seekRate) : Double(self.scrollView.contentSize.width) -  Double(index*self.seekRate)
-    scrollView.contentOffset.x = CGFloat(pos - Double(self.scrollView.contentInset.right))
-//    print(pos)
+    let pos : Double = swipeDirection == .LeftForward
+                      ? Double(index*self.seekRate) - Double(self.scrollView.contentInset.left)
+                      : Double(self.scrollView.contentSize.width) - (Double(index*self.seekRate) + Double(self.scrollView.contentInset.right))
+    scrollView.contentOffset.x = CGFloat(pos)
   }
 
   fileprivate func videoFrameCount(asset: AVAsset) -> Int {
@@ -137,9 +140,11 @@ extension PlayerView: UIScrollViewDelegate {
     self.delegate?.playerViewDidChangePosition( CMTimeGetSeconds(player.currentTime()) / CMTimeGetSeconds(asset.duration))
 
     if player.rate == 0 {
-      let index:Int = swipeDirection == .LeftForward ? Int(scrollView.contentOffset.x + (scrollView.bounds.width/2)) : Int(scrollView.contentSize.width - scrollView.contentOffset.x + (scrollView.bounds.width/2))
+      let index:Int = swipeDirection == .LeftForward
+                      ? Int(scrollView.contentOffset.x - scrollView.contentInset.left)
+                      : Int(scrollView.contentSize.width - (scrollView.contentOffset.x + scrollView.contentInset.left))
       player.seek(to: self.cmTimeToSeek(index: index), toleranceBefore: kCMTimeZero, toleranceAfter: kCMTimeZero)
-      
+
       if index == 0 {
         generator.prepare()
         generator.notificationOccurred(.warning)
