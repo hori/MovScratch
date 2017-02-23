@@ -47,7 +47,6 @@ class ProgressView: UIView {
     super.awakeFromNib()
     
     textureView = UIView(frame: self.bounds)
-    print(self.bounds)
     let gradientLayer: CAGradientLayer = CAGradientLayer()
     gradientLayer.colors = gradientColors
     gradientLayer.frame = textureView.bounds
