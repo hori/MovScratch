@@ -78,7 +78,7 @@ class PlayerView: UIView {
     print("contentInset.right :", scrollView.contentInset.right)
     
     // sync scrollview
-    let time : CMTime = CMTimeMakeWithSeconds(0.1, Int32(NSEC_PER_SEC))
+    let time : CMTime = CMTimeMakeWithSeconds(0.05, Int32(NSEC_PER_SEC))
     player.addPeriodicTimeObserver(forInterval: time, queue: nil) { [unowned self] (time) -> Void in
       guard self.player.rate != 0 else {return}
       self.syncScrollView(currentTime: self.player.currentTime())

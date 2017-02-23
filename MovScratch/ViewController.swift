@@ -42,12 +42,10 @@ extension ViewController {
 
 extension ViewController: PlayerViewDelegate {
   func playerViewDidEndSeeking() {
-    print("playerViewDidEndSeeking")
     progressView.expand = false
   }
   
   func playerViewWillBeginSeeking() {
-    print("playerViewWillBeginSeeking")
     progressView.expand = true
   }
   
@@ -57,15 +55,22 @@ extension ViewController: PlayerViewDelegate {
   
   func playerViewDidLoop() {
     loopCount += 1
+    let t = CATransition.init()
+    t.type = kCATransitionPush
+    t.subtype = kCATransitionFromBottom
+    t.duration = 0.2
+    loopCountLabel.layer.add(t, forKey: nil)
     loopCountLabel.text = String(loopCount)
   }
   
   func playerViewDidScratchPrevious() {
     loopCount += 1
+    let t = CATransition.init()
+    t.type = kCATransitionPush
+    t.subtype = kCATransitionFromBottom
+    t.duration = 0.2
+    loopCountLabel.layer.add(t, forKey: nil)
     loopCountLabel.text = String(loopCount)
-  }
-
-  func playerViewDidScratchForward() {
   }
 
 }
