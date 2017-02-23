@@ -14,6 +14,9 @@ class ViewController: UIViewController {
 
   @IBOutlet weak var playerView: PlayerView!
   @IBOutlet weak var progressView: ProgressView!
+  @IBOutlet weak var loopCountLabel: UILabel!
+  
+  var loopCount: Int = 1002231
   
   override func viewDidLoad() {
     super.viewDidLoad()
@@ -51,5 +54,19 @@ extension ViewController: PlayerViewDelegate {
   func playerViewDidChangePosition(_ currentPosition: Double) {
     progressView.position = currentPosition
   }
+  
+  func playerViewDidLoop() {
+    loopCount += 1
+    loopCountLabel.text = String(loopCount)
+  }
+  
+  func playerViewDidScratchPrevious() {
+    loopCount += 1
+    loopCountLabel.text = String(loopCount)
+  }
+
+  func playerViewDidScratchForward() {
+  }
+
 }
 

@@ -35,6 +35,13 @@
                                     <constraint firstAttribute="height" constant="22" id="Wt0-HK-IeM"/>
                                 </constraints>
                             </view>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="g0I-7z-O3H">
+                                <rect key="frame" x="40" y="558" width="147" height="25"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <fontDescription key="fontDescription" type="system" weight="black" pointSize="19"/>
+                                <color key="textColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                <nil key="highlightedColor"/>
+                            </label>
                         </subviews>
                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <constraints>
@@ -52,6 +59,7 @@
                         </constraints>
                     </view>
                     <connections>
+                        <outlet property="loopCountLabel" destination="g0I-7z-O3H" id="2bS-Q8-etm"/>
                         <outlet property="playerView" destination="dCV-wO-rfS" id="lcL-9n-R3m"/>
                         <outlet property="progressView" destination="fwP-9g-6Pe" id="ZcA-WB-bQQ"/>
                     </connections>

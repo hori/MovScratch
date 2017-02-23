@@ -10,17 +10,17 @@ import Foundation
 import UIKit
 import AVFoundation
 
-protocol PlayerViewDelegate {
+@objc protocol PlayerViewDelegate {
 
-  func playerViewWillBeginSeeking() -> Void
-  func playerViewDidEndSeeking() -> Void
-  func playerViewDidChangePosition(_ currentPosition: Double) -> Void
-
+  @objc optional func playerViewWillBeginSeeking() -> Void
+  @objc optional func playerViewDidEndSeeking() -> Void
+  @objc optional func playerViewDidChangePosition(_ currentPosition: Double) -> Void
+  @objc optional func playerViewDidLoop() -> Void
+  @objc optional func playerViewDidScratchPrevious() -> Void
+  @objc optional func playerViewDidScratchForward() -> Void
 }
 
 class PlayerView: UIView {
-  
-  var delegate: PlayerViewDelegate?
   
   enum Direction: Int {
     case RightForward = -1
@@ -32,15 +32,6 @@ class PlayerView: UIView {
   let decelerationRate: CGFloat = 0.8
   let swipeDirection: Direction = .RightForward
 
-  var player: AVPlayer!
-  var videoFrameCount: Int!
-  var scrollView: UIScrollView!
-
-  var lastSeekedAt: Double = 0
-  var lastSeekedPosition: Double = 0
-
-  let generator = UINotificationFeedbackGenerator()
-
   var asset: AVAsset! {
     didSet {
       guard let asset = self.asset else { return }
@@ -51,7 +42,16 @@ class PlayerView: UIView {
     }
   }
 
-  var playerLayer: AVPlayerLayer {
+  var delegate: PlayerViewDelegate?
+
+  fileprivate let generator = UINotificationFeedbackGenerator()
+
+  fileprivate var player: AVPlayer!
+  fileprivate var videoFrameCount: Int!
+  fileprivate var scrollView: UIScrollView!
+  fileprivate var startSeekPosition: Double = 0
+
+  fileprivate var playerLayer: AVPlayerLayer {
     return layer as! AVPlayerLayer
   }
 
@@ -94,6 +94,7 @@ class PlayerView: UIView {
       DispatchQueue.main.async {
         self.player?.seek(to: kCMTimeZero)
         self.player?.play()
+        self.delegate?.playerViewDidLoop?()
       }
     })
   }
@@ -128,6 +129,10 @@ class PlayerView: UIView {
     if seekTo > (videoFrameCount - 1)  {return (videoFrameCount - 1)}
     return seekTo
   }
+  
+  fileprivate func currentPosition() -> Double {
+    return Double(CMTimeGetSeconds(player.currentTime()) / CMTimeGetSeconds(asset.duration))
+  }
 
 }
 
@@ -137,7 +142,7 @@ extension PlayerView: UIScrollViewDelegate {
   
   func scrollViewDidScroll(_ scrollView: UIScrollView) {
 
-    self.delegate?.playerViewDidChangePosition( CMTimeGetSeconds(player.currentTime()) / CMTimeGetSeconds(asset.duration))
+    self.delegate?.playerViewDidChangePosition?(self.currentPosition())
 
     if player.rate == 0 {
       let index:Int = swipeDirection == .LeftForward
@@ -153,19 +158,26 @@ extension PlayerView: UIScrollViewDelegate {
   }
   
   func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
-    player.play()
-    self.delegate?.playerViewDidEndSeeking()
+    self.didEndSeeking()
   }
   
   func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
     player.pause()
-    self.delegate?.playerViewWillBeginSeeking()
+    self.delegate?.playerViewWillBeginSeeking?()
+    startSeekPosition = self.currentPosition()
   }
 
   func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
-    if (!decelerate) {
-      player.play()
-      self.delegate?.playerViewDidEndSeeking()
+    if !decelerate { self.didEndSeeking() }
+  }
+  
+  fileprivate func didEndSeeking() {
+    player.play()
+    self.delegate?.playerViewDidEndSeeking?()
+    if (startSeekPosition > self.currentPosition()) {
+      self.delegate?.playerViewDidScratchPrevious?()
+    } else {
+      self.delegate?.playerViewDidScratchForward?()
     }
   }
 }
